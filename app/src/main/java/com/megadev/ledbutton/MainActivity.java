@@ -2,16 +2,18 @@ package com.megadev.ledbutton;
 
 import android.app.Activity;
 import android.os.Bundle;
+
 import java.io.IOException;
+
 import android.util.Log;
+
 import com.google.android.things.contrib.driver.button.Button;
 
 public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private static final String gpioButtonPinName = "BUS NAME";
+    private static final String gpioButtonPinName = "BCM21";
     private Button mButton;
-
 
 
     @Override
@@ -31,16 +33,18 @@ public class MainActivity extends Activity {
             mButton = new Button(gpioButtonPinName,
                     // high signal indicates the button is pressed
                     // use with a pull-down resistor
-                    Button.LogicState.PRESSED_WHEN_HIGH
+                    Button.LogicState.PRESSED_WHEN_LOW
             );
             mButton.setOnButtonEventListener(new Button.OnButtonEventListener() {
                 @Override
                 public void onButtonEvent(Button button, boolean pressed) {
                     // do something awesome
+                    Log.i(TAG, "Button " + gpioButtonPinName + " pressed " + pressed);
                 }
             });
         } catch (IOException e) {
             // couldn't configure the button...
+            e.printStackTrace();
         }
     }
 
