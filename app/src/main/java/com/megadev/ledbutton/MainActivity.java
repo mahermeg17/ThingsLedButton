@@ -2,16 +2,19 @@ package com.megadev.ledbutton;
 
 import android.app.Activity;
 import android.os.Bundle;
-
-import java.io.IOException;
-
 import android.util.Log;
 
 import com.google.android.things.contrib.driver.button.Button;
+import com.google.android.things.pio.Gpio;
+import com.google.android.things.pio.PeripheralManager;
+
+import java.io.IOException;
 
 public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    private static final String gpioLedPinName = "BCM6";
+    private Gpio mLedGpio;
     private static final String gpioButtonPinName = "BCM21";
     private Button mButton;
 
@@ -20,12 +23,25 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupButton();
+        setupLed();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         destroyButton();
+        destroyLed();
+    }
+
+    private void setupLed() {
+        PeripheralManager pioService = PeripheralManager.getInstance();
+        try {
+            Log.i(TAG, "Configuring GPIO pins");
+            mLedGpio = pioService.openGpio(gpioLedPinName);
+            mLedGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
+        } catch (IOException e) {
+            Log.e(TAG, "Error configuring GPIO pins", e);
+        }
     }
 
     private void setupButton() {
@@ -40,11 +56,36 @@ public class MainActivity extends Activity {
                 public void onButtonEvent(Button button, boolean pressed) {
                     // do something awesome
                     Log.i(TAG, "Button " + gpioButtonPinName + " pressed " + pressed);
+                    setLedValue(pressed);
                 }
             });
         } catch (IOException e) {
             // couldn't configure the button...
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Update the value of the LED output.
+     */
+    private void setLedValue(boolean value) {
+        try {
+            mLedGpio.setValue(value);
+        } catch (IOException e) {
+            Log.e(TAG, "Error updating GPIO value", e);
+        }
+    }
+
+    private void destroyLed() {
+        if (mLedGpio != null) {
+            try {
+                mLedGpio.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Error closing LED GPIO", e);
+            } finally {
+                mLedGpio = null;
+            }
+            mLedGpio = null;
         }
     }
 
