@@ -3,6 +3,8 @@ package com.megadev.ledbutton;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.CompoundButton;
+import android.widget.ToggleButton;
 
 import com.google.android.things.contrib.driver.button.Button;
 import com.google.android.things.pio.Gpio;
@@ -17,13 +19,27 @@ public class MainActivity extends Activity {
     private Gpio mLedGpio;
     private static final String gpioButtonPinName = "BCM21";
     private Button mButton;
-
+    private ToggleButton ledToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupButton();
         setupLed();
+        setContentView(R.layout.activity_main);
+        ledToggle = (ToggleButton) findViewById(R.id.led_toggle);
+        ledToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Log.i(TAG, "ledToggle is ON");
+                    setLedValue(isChecked);
+                } else {
+                    setLedValue(isChecked);
+                    Log.i(TAG, "ledToggle is OFF");
+                }
+            }
+        });
+        ledToggle.setChecked(false);
     }
 
     @Override
@@ -43,6 +59,7 @@ public class MainActivity extends Activity {
             Log.e(TAG, "Error configuring GPIO pins", e);
         }
     }
+
 
     private void setupButton() {
         try {
